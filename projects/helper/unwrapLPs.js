@@ -192,6 +192,7 @@ async function sumLPWithOnlyOneTokenOtherThanKnown(balances, lpToken, owner, tok
 
 const PANCAKE_NFT_ADDRESS = '0x46A15B0b27311cedF172AB29E4f4766fbE7F4364'
 async function unwrapUniswapV3NFTs({ balances = {}, nftsAndOwners = [], block, chain = 'ethereum', owner, nftAddress, owners, blacklistedTokens = [], whitelistedTokens = [], }) {
+  // https://docs.uniswap.org/contracts/v3/reference/deployments
   if (!nftsAndOwners.length) {
     if (!nftAddress)
       switch (chain) {
@@ -201,6 +202,8 @@ async function unwrapUniswapV3NFTs({ balances = {}, nftsAndOwners = [], block, c
         case 'arbitrum': nftAddress = '0xC36442b4a4522E871399CD717aBDD847Ab11FE88'; break;
         case 'bsc': nftAddress = [PANCAKE_NFT_ADDRESS, '0x7b8a01b39d58278b5de7e48c8449c9f4f5170613']; break;
         case 'evmos': nftAddress = '0x5fe5daaa011673289847da4f76d63246ddb2965d'; break;
+        case 'celo': nftAddress = '0x3d79EdAaBC0EaB6F08ED885C05Fc0B014290D95A'; break;
+        case 'base': nftAddress = '0x03a520b32C04BF3bEEf7BEb72E919cf822Ed34f1'; break;
         default: throw new Error('missing default uniswap nft address')
       }
 
@@ -375,12 +378,6 @@ async function sumBalancerLps(balances, tokensAndOwners, block, chain, transform
   })
 }
 
-async function getTrxBalance(account) {
-  if (account === '0x2c7c9963111905d29eb8da37d28b0f53a7bb5c28') account = 'TE2RzoSV3wFK99w6J9UnnZ4vLfXYoxvRwP'
-  const data = await get('https://apilist.tronscan.org/api/account?address=' + account)
-  return data.balance + (data.totalFrozen || 0)
-}
-
 const nullAddress = ADDRESSES.null
 const gasTokens = [nullAddress, '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee', '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb']
 /*
@@ -405,13 +402,13 @@ async function sumTokens(balances = {}, tokensAndOwners, block, chain = "ethereu
   ethBalanceInputs = getUniqueAddresses(ethBalanceInputs, chain)
 
   if (ethBalanceInputs.length) {
-    if (chain === "tron") {
-      const ethBalances = await Promise.all(ethBalanceInputs.map(getTrxBalance))
-      ethBalances.forEach(balance => sdk.util.sumSingleBalance(balances, transformAddress(nullAddress), balance))
-    } else {
+    // if (chain === "tron") {
+    //   const ethBalances = await Promise.all(ethBalanceInputs.map(getTrxBalance))
+    //   ethBalances.forEach(balance => sdk.util.sumSingleBalance(balances, transformAddress(nullAddress), balance))
+    // } else {
       const { output: ethBalances } = await sdk.api.eth.getBalances({ targets: ethBalanceInputs, chain, block })
       ethBalances.forEach(({ balance }) => sdk.util.sumSingleBalance(balances, transformAddress(nullAddress), balance))
-    }
+    // }
   }
 
   const balanceOfTokens = await sdk.api.abi.multiCall({

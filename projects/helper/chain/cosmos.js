@@ -3,6 +3,7 @@ const sdk = require("@defillama/sdk");
 const { transformBalances } = require("../portedTokens");
 const { PromisePool } = require("@supercharge/promise-pool");
 const { log } = require("../utils");
+const ADDRESSES = require('../coreAssets.json')
 
 // where to find chain info
 // https://proxy.atomscan.com/chains.json
@@ -21,6 +22,7 @@ const endPoints = {
   juno: "https://lcd-juno.cosmostation.io",
   cronos: "https://lcd-crypto-org.cosmostation.io",
   chihuahua: "https://rest.cosmos.directory/chihuahua",
+  stargaze: "https://api-stargaze.ezstaking.dev",
   quicksilver: "https://rest.cosmos.directory/quicksilver",
   // chihuahua: "https://api.chihuahua.wtf",
   injective: "https://lcd-injective.whispernode.com:443",
@@ -221,6 +223,7 @@ async function queryContractStore({
 }
 
 async function sumTokens({ balances = {}, owners = [], chain, owner, tokens, blacklistedTokens, }) {
+  if (!tokens?.length || (tokens?.length === 1 && tokens[0] === ADDRESSES.null)) tokens = undefined;
   if (owner) owners = [owner]
   log(chain, "fetching balances for ", owners.length);
   let parallelLimit = 25;
